@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>大英博物馆：文明的探索</title>
+    <style>
+        :root {
+            --gold: #b89047;
+            --blue: #1a2a6c;
+            --glass: rgba(255, 255, 255, 0.94);
+            --dark-overlay: rgba(0, 0, 0, 0.7);
+            --success: #166534;
+        }
+
+        * { box-sizing: border-box; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); -webkit-tap-highlight-color: transparent; }
+
+        body {
+            margin: 0; padding: 0; font-family: "KaiTi", "楷体", serif;
+            color: white; min-height: 100vh; display: flex; flex-direction: column; align-items: center;
+        }
+
+        body::before {
+            content: ""; position: fixed; inset: 0;
+            background: linear-gradient(var(--dark-overlay), var(--dark-overlay)), url("bmv.jpg") no-repeat center center;
+            background-size: cover; filter: brightness(0.7); z-index: -1;
+        }
+
+        .header { margin-top: 4vh; text-align: center; z-index: 10; padding: 0 10px; }
+        .main-title { font-size: 28px; font-weight: bold; letter-spacing: 2px; margin: 0; }
+        .main-title-en { font-family: Georgia; font-size: 14px; opacity: 0.8; margin-bottom: 8px; }
+        .quote-en { font-family: Georgia; font-size: 13px; font-style: italic; color: var(--gold); }
+        .quote-zh { font-size: 13px; opacity: 0.9; margin-top: 5px; letter-spacing: 1px; }
+
+        .container { width: 92%; max-width: 480px; margin-top: 2vh; z-index: 10; margin-bottom: 50px; }
+
+        .card {
+            background: var(--glass); backdrop-filter: blur(15px); border-radius: 28px;
+            padding: 25px 20px; color: #212f3f; box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+            text-align: center; animation: fadeIn 0.5s ease; position: relative; overflow: hidden;
+        }
+
+        .progress-container { width: 100%; margin: 15px 0; }
+        .progress-bar-bg { background: rgba(0,0,0,0.1); height: 8px; border-radius: 10px; overflow: hidden; }
+        .progress-bar-fill { background: var(--gold); height: 100%; width: 0%; transition: width 0.6s ease; }
+        .deep-mode-active .progress-bar-fill { background: var(--blue); }
+        .deep-mode-active .node-label { color: var(--blue) !important; }
+
+        .mission-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin: 15px 0; }
+        .node { cursor: pointer; text-align: center; position: relative; }
+        .node-label { font-size: 11px; font-weight: bold; color: #333; line-height: 1.3; margin-top: 5px; }
+
+        .icon-circle {
+            width: 70px; height: 70px; border-radius: 50%; border: 2.5px solid var(--gold);
+            display: flex; align-items: center; justify-content: center; margin: 0 auto;
+            background: white; animation: glowGold 2s infinite alternate; position: relative;
+        }
+        .deep-mode-active .icon-circle { border-color: var(--blue); animation: glowBlue 2s infinite alternate; }
+
+        @keyframes glowGold { from { box-shadow: 0 0 5px rgba(184, 144, 71, 0.3); } to { box-shadow: 0 0 18px rgba(184, 144, 71, 0.7); } }
+        @keyframes glowBlue { from { box-shadow: 0 0 5px rgba(26, 42, 108, 0.3); } to { box-shadow: 0 0 18px rgba(26, 42, 108, 0.7); } }
+        
+        .icon-circle img { width: 70%; height: 70%; object-fit: contain; }
+
+        .completed .icon-circle { border-color: var(--success); animation: none; background: #fdfaf3; }
+        .completed::after { content: "✅"; position: absolute; top: -5px; right: 5px; font-size: 16px; }
+
+        #puzzle-container { 
+            width: 240px; height: 240px; margin: 20px auto; 
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; 
+            background: rgba(0,0,0,0.1); padding: 4px; border-radius: 8px;
+        }
+        .puzzle-piece { 
+            width: 74px; height: 74px; background-image: url("yuxi.jpg"); 
+            background-size: 240px 240px; cursor: move; border-radius: 4px;
+            touch-action: none; border: 1px solid rgba(255,255,255,0.3);
+        }
+
+        .title-animate {
+            font-size: 22px; font-weight: bold; margin: 15px 0; line-height: 1.2;
+            background: linear-gradient(90deg, #b89047, #5d4037, #b89047); background-size: 200% auto;
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            animation: shine 3s linear infinite, floating 2s ease-in-out infinite;
+        }
+
+        /* 烟花 Canvas */
+        #fireworks-canvas { position: fixed; inset: 0; pointer-events: none; z-index: 1000; }
+
+        /* 深境星空星星样式 */
+        .star {
+            position: absolute;
+            background: var(--blue);
+            border-radius: 50%;
+            pointer-events: none;
+            box-shadow: 0 0 5px rgba(26, 42, 108, 0.5);
+            animation: starTwinkle var(--duration) ease-in-out infinite;
+            opacity: 0;
+        }
+        @keyframes starTwinkle {
+            0%, 100% { opacity: 0; transform: scale(0.5); }
+            50% { opacity: 0.8; transform: scale(1.2); }
+        }
+
+        /* 深境标题循环特效 */
+        .rainbow-text {
+            animation: rainbow 5s linear infinite;
+            font-weight: bold;
+        }
+        @keyframes rainbow {
+            0% { color: #1a2a6c; } 25% { color: #b89047; } 50% { color: #166534; } 75% { color: #5d4037; } 100% { color: #1a2a6c; }
+        }
+
+        @keyframes shine { to { background-position: 200% center; } }
+        @keyframes floating { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+
+        button { cursor: pointer; border: none; border-radius: 50px; font-weight: bold; padding: 12px; margin: 8px 0; width: 85%; font-family: inherit; z-index: 2; position: relative;}
+        .btn-gold { background: var(--gold); color: white; }
+        .btn-blue { background: var(--blue); color: white; }
+        .btn-success { background: var(--success); color: white; }
+        .btn-outline { background: transparent; border: 2px solid var(--gold); color: var(--gold); }
+
+        .star-node { font-size: 32px; animation: starBlink 1.5s infinite; line-height: 70px; color: #ffeb3b; text-shadow: 0 0 15px #1a2a6c; }
+        @keyframes starBlink { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(1.15); } }
+
+        .hidden { display: none !important; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+<canvas id="fireworks-canvas"></canvas>
+
+<div id="feedback-overlay" style="position:fixed; inset:0; display:none; align-items:center; justify-content:center; z-index:2000; background:rgba(0,0,0,0.8); backdrop-filter:blur(8px);" onclick="closeFeedback()">
+    <div style="text-align:center; color:white; padding: 20px;">
+        <h1 id="fb-zh" style="font-size:38px; margin:0;"></h1>
+        <p id="fb-en" style="font-family:Georgia; font-size:20px; margin:10px 0;"></p>
+        <div style="font-size:14px; opacity:0.7; margin-top:30px;">点击继续 / TAP TO CONTINUE</div>
+    </div>
+</div>
+
+<div class="header">
+    <div class="main-title">大英博物馆之文明的探索</div>
+    <div class="main-title-en">The British Museum: Odyssey of Civilizations</div>
+    <div class="quote-en">"And let thy feet, millenniums hence, be set in midst of knowledge."</div>
+    <div class="quote-zh">愿你步履所至，万世皆为智慧环绕。</div>
+</div>
+
+<div class="container">
+    <div id="startPage" class="card">
+        <h3>探险家登记<br><small>VOYAGER REGISTRATION</small></h3>
+        <input id="nameInput" type="text" placeholder="输入姓名 / NAME" style="width:85%; padding:15px; margin:25px 0; border-radius:15px; text-align:center; border:1px solid #ddd;">
+        <button class="btn-gold" onclick="startGame()">起航<br><small>LET US BEGIN</small></button>
+    </div>
+
+    <div id="mapPage" class="card hidden">
+        <div class="progress-container">
+            <div style="font-size:12px; display:flex; justify-content:space-between; margin-bottom:5px;">
+                <span id="progLabel">探索进度 / EXPLORATION PROGRESS</span>
+                <span id="progText">0/8</span>
+            </div>
+            <div class="progress-bar-bg"><div id="progressBar" class="progress-bar-fill"></div></div>
+        </div>
+        <div class="mission-grid" id="missionGrid"></div>
+        <button id="finalBtn" class="btn-gold hidden" style="background:#212f3f" onclick="showResult()">结算<br><small>SETTLEMENT</small></button>
+    </div>
+
+    <div id="questionPage" class="card hidden">
+        <div id="qHeader"></div>
+        <div id="puzzleArea" class="hidden">
+            <p>拖动小块互换位置复原玉玺<br><small>DRAG TO SWAP PIECES AND RESTORE</small></p>
+            <div id="puzzle-container"></div>
+        </div>
+        <div id="qContent" style="text-align:left; margin:20px 0; line-height:1.6;"></div>
+        <div id="qActions"></div>
+        <div id="ansArea" class="hidden">
+            <div id="ansText" style="background:#f4f4f4; padding:15px; border-radius:15px; text-align:left; margin-bottom:15px; color:#333;"></div>
+        </div>
+        <button id="backToMapBtn" class="btn-outline" onclick="backToMap()">返回地图<br><small>BACK TO MAP</small></button>
+    </div>
+
+    <div id="resultPage" class="card hidden">
+        <h2 id="resName" style="color:var(--gold); margin:5px 0;"></h2>
+        <p>您的荣耀勋章<br><small>YOUR MEDAL OF GLORY</small></p>
+        <div id="resTitle" class="title-animate"></div>
+        <div id="resComment" style="font-size:14px; color:#555; margin-bottom:15px; line-height:1.6; padding:0 10px;"></div>
+        <div id="unfinished-text" style="font-size:12px; color:#888; background:#eee; padding:15px; border-radius:12px; margin-bottom:20px; text-align:left; line-height:1.5; display:none;">
+            馆内仍有未开启的密室，那是留给下次重逢的伏笔。文明永不谢幕，期待再次探险。<br>
+            <small>There are still locked chambers; a prelude to our next reunion. Civilization never ends; we look forward to exploring with you again.</small>
+        </div>
+        <button class="btn-gold" onclick="location.reload()">重新开始<br><small>RESTART</small></button>
+        <button id="deepBtn" class="btn-outline" onclick="startDeep()">开启深境挑战<br><small>DEEP CHALLENGE</small></button>
+    </div>
+
+    <div id="deepEndPage" class="card hidden">
+        <div id="star-field" style="position:absolute; inset:0; pointer-events:none; z-index:0; background: rgba(26, 42, 108, 0.05);"></div>
+        
+        <div style="position:relative; z-index:1;">
+            <h2 id="deepEndName" class="rainbow-text"></h2>
+            <p id="deepEndingText" style="padding:0 15px; line-height:1.6; text-align: left; font-size: 14px;"></p>
+            <button class="btn-blue" onclick="location.reload()">向所有人类文明致敬<br><small>SALUTE TO All HUMAN CIVILIZATION</small></button>
+            <button class="btn-outline" onclick="goToSettlement()">返回结算页面<br><small>BACK TO SETTLEMENT</small></button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let playerName = "";
+    let score = 0, completed = 0, currentIdx = -1, isDeepMode = false;
+    let draggedIdx = null;
+    let rawTitle = ""; 
+    let puzzleHasShuffled = false;
+
+    const questions = [
+        { lab:"概述", en:"OVERVIEW", img:"overview.png", q_zh:"大中庭3312块玻璃象征着什么？", q_en:"What does the Great Court roof symbolize?", a:"象征知识的透明与共享。", done:false },
+        { lab:"古埃及", en:"Ancient Egypt", img:"ancientegypt.png", q_zh:"拉美西斯二世像右胸的圆孔是？", q_en:"What is the hole in the statue?", a:"19世纪搬运起吊的遗迹。", done:false },
+        { lab:"亚述", en:"Assyria", img:"assyria.png", q_zh:"守护王宫的神兽叫什么？", q_en:"What is the protective deity called?", a:"拉玛苏 (Lamassu)。", done:false },
+        { lab:"古罗马", en:"Ancient Rome", img:"ancientrome.png", q_zh:"罗马肖像的真实感传达了？", q_en:"What did Roman realism convey?", a:"统治者的责任感与威严。", done:false },
+        { lab:"古希腊", en:"Ancient Greece", img:"ancientgreece.png", q_zh:"《命运三女神》展示了？", q_en:"What does 'Three Fates' show?", a:"解剖学与湿衣褶的高峰。", done:false },
+        { lab:"生与死", en:"Living & Dying", img:"livingdying.png", q_zh:"复活节岛石像材质是？", q_en:"What are Moai made of?", a:"火山凝灰岩。", done:false },
+        { lab:"中国", en:"China", img:"china.png", q_zh:"唐三彩马通常有哪三色？", q_en:"Three colors of Tang Sancai?", a:"黄、绿、白。", done:false },
+        { lab:"隐藏任务", en:"Hidden Mission", img:"hiddenmission.png", q_zh:"寻找玉玺并拼图复原身份验证。", q_en:"Find the seal and restore it for verification.", a:"验证成功！您已获得特邀研究员勋章。", done:false, isPuzzle:true }
+    ];
+
+    const deepMissions = [
+        { t:"中国瓷器", en:"Chinese Ceramics", img:"chineseceramics.png", q_zh:"如果没有丝绸之路的矿料，青花瓷还会诞生吗？", q_en:"Would Blue-and-White exist without Silk Road?", done:false },
+        { t:"木乃伊", en:"Mummies", img:"Mummies.png", q_zh:"古埃及人保存肉体是畏惧死亡，还是热爱生活？", q_en:"Fear of death or love for life?", done:false },
+        { t:"罗马及爱琴海", en:"Roman & Aegean", img:"romanempire.png", q_zh:"支撑文明长久存在的动力是武力还是文化？", q_en:"What sustains civilization: Force or Culture?", done:false },
+        { t:"欧洲展厅", en:"Europe", img:"europe.png", q_zh:"在动荡的中世纪，人们为何花几十年雕刻一颗棋子？", q_en:"Why spend decades carving a single piece?", done:false },
+        { t:"中东文明", en:"Middle East", img:"middleeast.png", q_zh:"如果没有文字记录，我们的记忆将如何延续？", q_en:"Without records, how would memory endure?", done:false },
+        { t:"非洲艺术", en:"Africa", img:"africa.png", q_zh:"你能感受到那种‘在苦难中绽放生命力’的力量吗？", q_en:"Can you feel the power blooming from hardship?", done:false }
+    ];
+
+    function startGame() {
+        playerName = document.getElementById("nameInput").value || "探险家";
+        document.getElementById("startPage").classList.add("hidden");
+        document.getElementById("mapPage").classList.remove("hidden");
+        renderMap();
+    }
+
+    function renderMap() {
+        const grid = document.getElementById("missionGrid");
+        grid.innerHTML = "";
+        const data = isDeepMode ? deepMissions : questions;
+        data.forEach((q, idx) => {
+            const div = document.createElement("div");
+            div.className = `node ${q.done ? 'completed' : ''}`;
+            div.onclick = () => isDeepMode ? openDeep(idx) : openQuestion(idx);
+            let iconHtml = (q.done && isDeepMode) ? `<div class="icon-circle"><div class="star-node">⭐</div></div>` : `<div class="icon-circle"><img src="${q.img}"></div>`;
+            div.innerHTML = `${iconHtml}<div class="node-label">${isDeepMode ? '' : q.lab + '<br>'}<small>${isDeepMode ? q.t : q.en}</small></div>`;
+            grid.appendChild(div);
+        });
+        const total = isDeepMode ? 6 : 8;
+        document.getElementById("progressBar").style.width = (completed / total * 100) + "%";
+        document.getElementById("progText").innerText = `${completed}/${total}`;
+        if(completed >= (isDeepMode ? 1 : 6)) {
+            document.getElementById("finalBtn").classList.remove("hidden");
+            if(isDeepMode) {
+                document.getElementById("finalBtn").innerHTML = "结束深境探索<br><small>END DEEP ODYSSEY</small>";
+                document.getElementById("finalBtn").style.background = "#1a2a6c";
+                document.getElementById("finalBtn").onclick = finishDeep;
+            }
+        }
+    }
+
+    function openQuestion(idx) {
+        if(questions[idx].done) return;
+        currentIdx = idx;
+        const q = questions[idx];
+        document.getElementById("mapPage").classList.add("hidden");
+        document.getElementById("questionPage").classList.remove("hidden");
+        document.getElementById("ansArea").classList.add("hidden");
+        document.getElementById("qActions").innerHTML = `
+            <button class="btn-success" onclick="handleAnswer(true)">我知道<br><small>I Got It</small></button>
+            <button class="btn-gold" style="background:#64748b" onclick="handleAnswer(false)">再想想<br><small>Let Me Think</small></button>
+        `;
+        document.getElementById("qHeader").innerHTML = `<div class="icon-circle"><img src="${q.img}"></div>`;
+        document.getElementById("qContent").innerHTML = `<b>${q.q_zh}</b><br><small>${q.q_en}</small>`;
+        if(q.isPuzzle) {
+            document.getElementById("puzzleArea").classList.remove("hidden");
+            document.getElementById("qActions").classList.add("hidden");
+            initPuzzle();
+        } else {
+            document.getElementById("puzzleArea").classList.add("hidden");
+            document.getElementById("qActions").classList.remove("hidden");
+        }
+    }
+
+    function startDeep() {
+        isDeepMode = true; completed = 0;
+        document.getElementById("resultPage").classList.add("hidden");
+        document.getElementById("mapPage").classList.remove("hidden");
+        document.getElementById("mapPage").classList.add("deep-mode-active");
+        renderMap();
+    }
+
+    function openDeep(idx) {
+        if(deepMissions[idx].done) return;
+        currentIdx = idx;
+        const q = deepMissions[idx];
+        document.getElementById("mapPage").classList.add("hidden");
+        document.getElementById("questionPage").classList.remove("hidden");
+        document.getElementById("questionPage").classList.add("deep-mode-active");
+        document.getElementById("ansArea").classList.add("hidden");
+        document.getElementById("puzzleArea").classList.add("hidden");
+        document.getElementById("qHeader").innerHTML = `<div class="icon-circle"><img src="${q.img}"></div>`;
+        document.getElementById("qContent").innerHTML = `<b>${q.q_zh}</b><br><small>${q.q_en}</small>`;
+        document.getElementById("qActions").innerHTML = `<button class="btn-blue" onclick="completeDeep()">深入思考 完成<br><small>Critical Thinking Contemplate</small></button>`;
+        document.getElementById("qActions").classList.remove("hidden");
+    }
+
+    function completeDeep() {
+        deepMissions[currentIdx].done = true;
+        completed++;
+        backToMap();
+    }
+
+    let puzzleOrder = [0,1,2,3,4,5,6,7,8]; 
+    function shuffle(array) {
+        let arr = [...array];
+        for (let i = arr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
+    }
+
+    function initPuzzle() {
+        const container = document.getElementById("puzzle-container");
+        container.innerHTML = "";
+        if(!puzzleHasShuffled) {
+            puzzleOrder = shuffle([0,1,2,3,4,5,6,7,8]);
+            puzzleHasShuffled = true;
+        }
+        puzzleOrder.forEach((pos, i) => {
+            const piece = document.createElement("div");
+            piece.className = "puzzle-piece";
+            piece.style.backgroundPosition = `-${(pos%3)*80}px -${Math.floor(pos/3)*80}px`;
+            piece.dataset.currentIdx = i;
+            piece.draggable = true;
+            piece.ondragstart = (e) => { draggedIdx = i; };
+            piece.ondragover = (e) => e.preventDefault();
+            piece.ondrop = (e) => handleSwap(draggedIdx, i);
+            piece.ontouchstart = (e) => { draggedIdx = i; };
+            piece.ontouchend = (e) => {
+                let touch = e.changedTouches[0];
+                let target = document.elementFromPoint(touch.clientX, touch.clientY);
+                if (target && target.classList.contains('puzzle-piece')) handleSwap(draggedIdx, parseInt(target.dataset.currentIdx));
+            };
+            container.appendChild(piece);
+        });
+    }
+
+    function handleSwap(src, dst) {
+        if(src === null || dst === undefined || src === dst) return;
+        let temp = puzzleOrder[src];
+        puzzleOrder[src] = puzzleOrder[dst];
+        puzzleOrder[dst] = temp;
+        initPuzzle();
+        if(puzzleOrder.every((v, i) => v === i)) handleAnswer(true);
+    }
+
+    function handleAnswer(isCorrect) {
+        if(isCorrect) score++;
+        document.getElementById("fb-zh").innerText = isCorrect ? "你太棒了！" : "没关系";
+        document.getElementById("fb-en").innerText = isCorrect ? "AWESOME!" : "KEEP EXPLORING";
+        document.getElementById("feedback-overlay").style.display = "flex";
+        if(!isDeepMode) { questions[currentIdx].done = true; completed++; }
+    }
+
+    function closeFeedback() {
+        document.getElementById("feedback-overlay").style.display = "none";
+        document.getElementById("qActions").classList.add("hidden");
+        document.getElementById("puzzleArea").classList.add("hidden");
+        document.getElementById("ansArea").classList.remove("hidden");
+        document.getElementById("ansText").innerHTML = `<b>答案 / Answer:</b><br>${questions[currentIdx].a}`;
+    }
+
+    function backToMap() {
+        document.getElementById("questionPage").classList.add("hidden");
+        document.getElementById("mapPage").classList.remove("hidden");
+        renderMap();
+    }
+
+    function showResult() {
+        document.getElementById("mapPage").classList.add("hidden");
+        document.getElementById("resultPage").classList.remove("hidden");
+        document.getElementById("resName").innerText = playerName;
+        let tZh = "", tEn = "", comment = "";
+        if(score === 8) { tZh = "“大满贯”——文明守望者"; tEn = "Civilization Guardian"; comment = "万物皆有回响，你听到了文明的心跳。<br><small>Everything has an echo; you have heard the very heartbeat of civilizations.</small>"; }
+        else if(score === 7) { tZh = "时空巡礼官"; tEn = "Chronos Voyager"; comment = "历史是凝固的时间，而你拥有拨动指针的灵感。<br><small>History is frozen time; you possess the inspiration to turn its hands.</small>"; }
+        else if(score === 6) { tZh = "传奇考古大师"; tEn = "Legendary Master"; comment = "破译碎片的秘密，是属于你与古人之间的默契。<br><small>Deciphering the secrets of fragments is a silent understanding between you and the ancients.</small>"; }
+        else if(score === 5) { tZh = "见习史学家"; tEn = "Junior Historian"; comment = "在庞大的史料中，你已经寻得那条通往真相的小径。<br><small>Amidst vast historical records, you have found the narrow path leading to the truth.</small>"; }
+        else if(score >= 3) { tZh = "博物馆领航员"; tEn = "Museum Navigator"; comment = "即使在迷雾般的往事里，你依然能辨认出文明的灯塔。<br><small>Even in the mists of the past, you can still recognize the lighthouse of civilization.</small>"; }
+        else if(score >= 1) { tZh = "历史探索者"; tEn = "History Explorer"; comment = "每一次好奇的注视，都是对人类记忆的一份敬意。<br><small>Every curious gaze is an act of homage to human memory.</small>"; }
+        else { tZh = "迷失的时空旅行者"; tEn = "Lost Time Traveler"; comment = "沉醉于美而忘记了归期，这本身就是一场浪漫的漫游。<br><small>To be so intoxicated by beauty that one forgets to return—that is a romantic odyssey in itself.</small>"; }
+        rawTitle = tZh; 
+        document.getElementById("resTitle").innerHTML = `🏆 ${tZh} 🏆<br><small>${tEn}</small>`;
+        document.getElementById("resComment").innerHTML = comment;
+        if(completed < 8) document.getElementById("unfinished-text").style.display = "block";
+        startFireworks();
+    }
+
+    function startFireworks() {
+        const canvas = document.getElementById('fireworks-canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        let particles = [];
+        function createParticle(x, y) {
+            for (let i = 0; i < 40; i++) {
+                particles.push({ x, y, vx: (Math.random() - 0.5) * 8, vy: (Math.random() - 0.5) * 8, color: `hsl(${Math.random() * 360}, 70%, 60%)`, size: Math.random() * 3 + 1, alpha: 1 });
+            }
+        }
+        let timer = 0;
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            if (timer < 50 && timer % 10 === 0) createParticle(Math.random() * canvas.width, Math.random() * canvas.height * 0.6);
+            particles.forEach((p, i) => {
+                p.x += p.vx; p.y += p.vy; p.alpha -= 0.01;
+                ctx.globalAlpha = p.alpha; ctx.fillStyle = p.color;
+                ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fill();
+                if (p.alpha <= 0) particles.splice(i, 1);
+            });
+            timer++;
+            if (timer < 200) requestAnimationFrame(animate);
+        }
+        animate();
+    }
+
+    function finishDeep() {
+        document.getElementById("mapPage").classList.add("hidden");
+        document.getElementById("deepEndPage").classList.remove("hidden");
+        document.getElementById("deepEndName").innerText = `谢谢你，${rawTitle} ${playerName}`;
+        document.getElementById("deepEndingText").innerHTML = `
+            在这段跨越时空的旅程中，你不仅用双眼见证了历史，更用思考赋予了文物新的生命。文明从未在废墟中消亡，它在每一个如你般专注的灵魂中接力。愿这颗点亮的星辰，伴随你未来的每一次探索。<br><br>
+            <small>In this journey across time, you have not only witnessed history but breathed new life into artifacts through your reflections. Civilization never perished in the ruins; it continues in every soul as devoted as yours. May this lit star accompany you on every future exploration.</small>
+        `;
+        createStars();
+    }
+
+    // 星星创建逻辑修复
+    function createStars() {
+        const field = document.getElementById('star-field');
+        field.innerHTML = "";
+        const count = 60;
+        for(let i=0; i<count; i++) {
+            const s = document.createElement('div');
+            s.className = 'star';
+            const size = Math.random() * 3 + 1 + 'px';
+            s.style.width = size;
+            s.style.height = size;
+            s.style.left = Math.random() * 100 + '%';
+            s.style.top = Math.random() * 100 + '%';
+            s.style.setProperty('--duration', (Math.random() * 3 + 2) + 's');
+            s.style.animationDelay = Math.random() * 5 + 's';
+            field.appendChild(s);
+        }
+    }
+
+    function goToSettlement() {
+        document.getElementById("deepEndPage").classList.add("hidden");
+        document.getElementById("resultPage").classList.remove("hidden");
+    }
+</script>
+</body>
+</html>
