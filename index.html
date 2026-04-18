@@ -22,8 +22,11 @@
 
         body::before {
             content: ""; position: fixed; inset: 0;
+            /* 这是探索模式的背景图 */
             background: linear-gradient(var(--dark-overlay), var(--dark-overlay)), url("bmv.jpg") no-repeat center center;
             background-size: cover; filter: brightness(0.7); z-index: -1;
+            /* 关键：增加一个过渡动画，让换背景不生硬 */
+            transition: background-image 1.2s ease-in-out, filter 1.2s ease-in-out; 
         }
 
         .header { margin-top: 4vh; text-align: center; z-index: 10; padding: 0 10px; }
@@ -87,24 +90,44 @@
         #fireworks-canvas { position: fixed; inset: 0; pointer-events: none; z-index: 1000; }
 
         /* 深境星空星星样式 */
-        .star {
+  .star {
             position: absolute;
-            background: var(--blue);
             border-radius: 50%;
             pointer-events: none;
-            box-shadow: 0 0 5px rgba(26, 42, 108, 0.5);
-            animation: starTwinkle var(--duration) ease-in-out infinite;
+            /* 增加外发光，让星星看起来在发光 */
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px var(--star-color);
+            background: white;
+            animation: starTwinkle var(--duration) ease-in-out infinite, 
+                       starFloating var(--float-duration) ease-in-out infinite;
             opacity: 0;
         }
+
+        /* 闪烁动画：增加缩放和透明度变化 */
         @keyframes starTwinkle {
-            0%, 100% { opacity: 0; transform: scale(0.5); }
-            50% { opacity: 0.8; transform: scale(1.2); }
+            0%, 100% { opacity: 0; transform: scale(0.3); }
+            50% { opacity: 1; transform: scale(1); }
+        }
+
+        /* 漂浮动画：让星星有轻微的位移，看起来更灵动 */
+        @keyframes starFloating {
+            0%, 100% { translate: 0 0; }
+            50% { translate: 10px 15px; }
         }
 
         /* 深境标题循环特效 */
         .rainbow-text {
             animation: rainbow 5s linear infinite;
             font-weight: bold;
+            font-size: 28px; /* 稍微加大字号 */
+            text-shadow: 0 0 15px rgba(255, 255, 255, 0.8), 0 0 5px rgba(255, 255, 255, 1); /* 核心：白色强力外发光 */
+            letter-spacing: 2px; /* 增加字间距 */
+        }
+        /* 针对深境页面文字的增强效果 */
+        #deepEndingText {
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8); /* 核心：增加黑色深影 */
+            font-weight: 500; 
+            letter-spacing: 0.5px;
+            color: #ffffff; /* 强制设为白色，确保对比度 */
         }
         @keyframes rainbow {
             0% { color: #1a2a6c; } 25% { color: #b89047; } 50% { color: #166534; } 75% { color: #5d4037; } 100% { color: #1a2a6c; }
@@ -119,12 +142,275 @@
         .btn-success { background: var(--success); color: white; }
         .btn-outline { background: transparent; border: 2px solid var(--gold); color: var(--gold); }
 
+        /* 所有按钮在按下瞬间的状态 */
+button:active, .btn-gold:active {
+    transform: scale(0.96);     /* 轻微缩小，模拟物理按压感 */
+    box-shadow: inset 0 2px 10px rgba(0,0,0,0.3) !important;/* 加深阴影，让它看起来像陷进去了 */
+    filter: brightness(0.9);    /* 颜色稍微变深一点点 */
+    transition: transform 0.1s; /* 确保过渡自然 */
+}
+        
+       /* --- 深境模式 · 阅读室皮肤 --- */
+
+/* 1. 当 body 带有 .is-deep-theme 类名时，将全局金色变量改为星星黄 */
+body.is-deep-theme {
+    --gold: #ffeb3b !important; 
+}
+
+/* 2. 关键：将 body 下的 ::before 层替换为这个新的阅读室背景图 */
+body.is-deep-theme::before {
+    background-image: radial-gradient(circle at 50% 50%, rgba(255, 235, 59, 0.1), transparent 70%), /* 中心微弱蓝星云 */linear-gradient(rgba(40, 40, 40, 0.571), rgba(2, 12, 27, 0.5)), url("readingroom.png") !important;
+    filter: brightness(0.5) contrast(1)!important;
+    transition: all 0.8s ease-in-out !important; 
+}
+
+/* 3. 强制让特定文字也跟随变色 */
+.is-deep-theme .quote-en, 
+.is-deep-theme .presented-by,
+.is-deep-theme [onclick="openProfile"] {
+    color: #ffeb3b !important;
+}
+
+/* 4. 底版变夜空色 */
+.is-deep-theme .card {
+    background: rgba(2, 12, 27, 0.8) !important; /* 确定的夜空色底版 */
+    border: 1px solid rgba(255, 235, 59, 0.1) !important; /* 极细黄色轮廓线 */
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.9), inset 0 0 20px rgba(11, 31, 112, 0.2) !important;
+    position: relative;
+    overflow: hidden; /* 裁剪流星，防止划出 Card 范围 */
+}
+
+/* 5. 底版内文字变银白色 */
+.is-deep-theme .card h2, 
+.is-deep-theme .card h3, 
+.is-deep-theme .card p,
+.is-deep-theme #progLabel, 
+.is-deep-theme #progText,
+.is-deep-theme #qContent b,
+.is-deep-theme .node-label, 
+.is-deep-theme #deepEndingText {
+    color: #e0e0e0 !important; /* 银白色文字 */
+}.is-deep-theme .node-label {
+    color: #ffffff !important; 
+    text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+    font-size: 13px; /* 略微加大提升识别度 */
+}
+.is-deep-theme #qContent small {
+    color: rgba(255, 255, 255, 0.85) !important; /* 提高英文透明度 */
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+}
+
+/* 6. 进度条联动：也改为银白色 */
+.is-deep-theme .progress-bar-bg {
+    background: rgba(255, 255, 255, 0.644) !important; /* 白底 */
+    border: none;
+    height: 6px;
+}
+.is-deep-theme .progress-bar-fill {
+    background: #ffeb3b !important; /* 星星黄进度 */
+    box-shadow: 0 0 10px rgba(255, 235, 59, 0.8);
+    width: 0%; /* 初始宽度由 JS 控制 */
+}
+/* 7. 图标发光 */
+.is-deep-theme .icon-circle {
+    background: white !important; /* 强制保持白色背景 */
+    border: 2.5px solid #ffeb3b !important;
+    /* 呼吸感动画 */
+    animation: starGlow 2s infinite alternate !important; 
+}
+
+@keyframes starGlow {
+    from { box-shadow: 0 0 8px rgba(255, 235, 59, 0.4); }
+    to { box-shadow: 0 0 25px rgba(255, 235, 59, 0.9); }
+}
+/* 针对深境模式下已完成图标的特殊处理 */
+.is-deep-theme .completed .icon-circle {
+    border-color: #166534 !important; /* 变成和你定义的 --success 一样的绿色 */
+    animation: none !important;        /* 强制停止闪烁动画 */
+    box-shadow: none !important;       /* 移除发光效果 */
+    background: #fdfaf3 !important;    /* 保持和普通模式一样的淡色背景，方便看清图标 */
+}
+
+/* 确保勾选符号在深色背景下依然清晰 */
+.is-deep-theme .completed::after {
+    color: #166534;
+    text-shadow: 0 0 5px rgba(255,255,255,0.8);
+}
+  /* 8. 三级星空点缀样式 */
+.sky-star {
+    position: fixed; border-radius: 50%; pointer-events: none; z-index: -1;
+}
+.star-dust { background: rgba(255,255,255,0.2); } /* 远景星尘 */
+.star-mid { background: rgba(255,255,255,0.6); box-shadow: 0 0 4px white; } /* 中景星 */
+.star-bright { background: #ffffff; box-shadow: 0 0 10px #ffffff; } /* 近景星 */
+
+@keyframes twinkle {
+    0%, 100% { opacity: 0.3; transform: scale(0.8); }
+    50% { opacity: 1; transform: scale(1.2); }
+}
+/* 两种星星样式：主背景星(白) vs Card星(亮/黄/棱形) */
+.sky-star { position: fixed; border-radius: 50%; pointer-events: none; z-index: -1; } /* 背景星 */
+.card-star { position: absolute; border-radius: 50%; pointer-events: none; z-index: 0; } /* Card星 */
+
+/* 棱形星 ✨ 特效 */
+.diamond-star {
+    position: absolute;
+    width: 20px; height: 20px;
+    background: #fff;
+    clip-path: polygon(50% 0%, 61% 39%, 100% 50%, 61% 61%, 50% 100%, 39% 61%, 0% 50%, 39% 39%);
+    box-shadow: 0 0 15px #fff;
+    animation: diamondGlow 3s infinite alternate;
+}
+
+@keyframes diamondGlow {
+    from { transform: scale(0.8) rotate(0deg); opacity: 0.6; }
+    to { transform: scale(1.2) rotate(15deg); opacity: 1; }
+}
+
+/* 9. 修正按钮: “返回地图”按钮：星星黄字 + 边框 */
+.is-deep-theme .btn-outline {
+    color: #ffeb3b !important;
+    border: 2px solid #ffeb3b !important;
+    background: transparent !important; 
+}
+/* “开启深境”按钮：白底、深蓝边、深蓝字 */
+#resultPage .btn-outline[onclick*="startDeep"] {
+    background: white !important;
+    color: rgba(11, 31, 112, 1) !important;
+    border: 2px solid rgba(11, 31, 112, 1) !important;
+}
+/* “深入思考完成”/“结束深境”：白底、深蓝字 */
+.is-deep-theme .btn-gold, 
+.is-deep-theme .btn-blue {
+    background: white !important;
+    color: rgba(11, 31, 112, 1) !important;
+    border: none !important;
+    font-weight: bold !important;
+}
+/* 10. 流星特效样式 */
+/* 流星本体样式 */
+.meteor-card {
+    position: absolute;
+    width: 150px; /* 增加长度 */
+    height: 3px;  /* 增加厚度 */
+    background: linear-gradient(to left, #ffeb3b, rgba(255, 235, 59, 0));
+    z-index: 10;
+    pointer-events: none;
+    filter: drop-shadow(0 0 8px #ffeb3b); /* 加强发光 */
+    animation: meteorMove 2s linear forwards;
+}
+
+@keyframes meteorMove {
+    0% {
+        top: -5%; 
+        right: -20%; 
+        opacity: 0;
+        transform: rotate(20deg) scaleX(1);
+    }
+    10% { opacity: 1; }
+    100% {
+        top: 60%; 
+        right: 120%; 
+        opacity: 0;
+        transform: rotate(20deg) scaleX(0.6);
+    }
+}
+/* Deep结算页动画：让勋章星微弱呼吸 */
+.is-deep-theme #deepEndPage span {
+    animation: medalGlow 2s infinite alternate ease-in-out;
+}
+
+@keyframes medalGlow {
+    from { transform: scale(1); filter: brightness(1); }
+    to { transform: scale(1.1); filter: brightness(1.3); }
+}
+        
+        /* 个人介绍弹出层 */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(8px);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 10000;
+        }
+        .profile-card {
+            background: #c5a47e; width: 85%; max-width: 400px;
+            padding: 30px 5px; border-radius: 20px; text-align: center;
+            position: relative; color: #333;
+            overflow: hidden; /* 增加这一行，确保照片圆角能切出来 */
+}
+        .profile-card h2 { color: var(--gold); margin-top: 0; }
+        .close-modal { margin-top: 20px; padding: 10px; background: #eee; border-radius: 8px; width: 100%; }
+
+        /* 总结页落款布局 */
+        .closing-footer {
+            display: flex; justify-content: flex-end; align-items: center;
+            margin-top: 20px; padding-top: 15px; border-top: 1px dashed #ddd;
+        }
+        .seal-img { width: 60px; height: 60px; border-radius: 50%; border: 1px solid #eee; }
+
         .star-node { font-size: 32px; animation: starBlink 1.5s infinite; line-height: 70px; color: #ffeb3b; text-shadow: 0 0 15px #1a2a6c; }
         @keyframes starBlink { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(1.15); } }
 
         .hidden { display: none !important; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-    </style>
+
+/* 1. 名片与结束语的底板：牛皮纸色 + 纸张纹理 */
+.profile-card, .closing-card {
+    background-color: #c5a47e !important; /* 使用深沙褐色基底，移除光泽感渐变 */
+    background-image: 
+        /* 模拟陈旧斑驳的污渍感 */
+        radial-gradient(circle at 20% 30%, rgba(101, 67, 33, 0.05) 0%, transparent 40%),
+        radial-gradient(circle at 80% 70%, rgba(101, 67, 33, 0.05) 0%, transparent 40%),
+        /* 模拟纵横交错的纸张纤维纹理 */
+        repeating-linear-gradient(45deg, rgba(0, 0, 0, 0.02) 0px, rgba(0, 0, 0, 0.02) 1px, transparent 1px, transparent 4px),
+        repeating-linear-gradient(-45deg, rgba(0, 0, 0, 0.02) 0px, rgba(0, 0, 0, 0.02) 1px, transparent 1px, transparent 4px) !important;
+    box-shadow: 
+        inset 0 0 80px rgba(141, 108, 65, 0.3), 
+        0 10px 30px rgba(0,0,0,0.4) !important;    /* 边缘焦灼感：不再是内发光，而是内暗影 */
+    border: 1px solid #9e7e5a !important;  /* 边框使用更深的生赭色 */
+    color: #3e2723 !important;     /* 确保文字是深咖啡棕，呈现墨迹感 */
+}
+
+/* 2. 标题颜色：深焦糖棕 */
+.profile-card h2, .closing-card h2{
+    color: #2b1d1a !important;
+    border-bottom: 1px solid rgba(43, 29, 26, 0.2);
+    text-shadow: none !important;
+}
+
+.profile-card p, .closing-card p {
+    color: #3e2723 !important;
+    line-height: 1.5;
+    text-align: left;/* 暂时注释掉 border-bottom，由 HTML 内部控制间距 */
+    border-bottom: none; 
+}
+
+
+/* 专门给名片内的文字容器设置基础颜色，去掉 !important 的强制性 */
+.profile-card .content-box {
+    color: #3e2723;
+}
+
+/* 3. 按钮：匹配棕色系 */
+.profile-card .btn-gold, .closing-card .btn-gold {
+    background: #5d4037 !important;
+    color: #dcd0c0 !important;
+    border: none !important;
+    box-shadow: 0 4px 0 #3e2723 !important; /* 增加一点实体按键感 */
+}
+.profile-card .btn-gold:active, .closing-card .btn-gold:active {
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 #3e2723 !important;
+}
+
+/* 4. 特殊：头像边框也要换成棕色系 */
+.profile-card img {
+    border: 4px solid #f5deb3 !important;
+    box-shadow: 0 4px 10px rgba(62, 39, 35, 0.3) !important;
+}
+</style>
 </head>
 <body>
 
@@ -161,7 +447,7 @@
             <div class="progress-bar-bg"><div id="progressBar" class="progress-bar-fill"></div></div>
         </div>
         <div class="mission-grid" id="missionGrid"></div>
-        <button id="finalBtn" class="btn-gold hidden" style="background:#212f3f" onclick="showResult()">结算<br><small>SETTLEMENT</small></button>
+        <button id="finalBtn" class="btn-gold hidden" onclick="showResult()">结算<br><small>SETTLEMENT</small></button>
     </div>
 
     <div id="questionPage" class="card hidden">
@@ -184,50 +470,104 @@
         <div id="resTitle" class="title-animate"></div>
         <div id="resComment" style="font-size:14px; color:#555; margin-bottom:15px; line-height:1.6; padding:0 10px;"></div>
         <div id="unfinished-text" style="font-size:12px; color:#888; background:#eee; padding:15px; border-radius:12px; margin-bottom:20px; text-align:left; line-height:1.5; display:none;">
-            馆内仍有未开启的密室，那是留给下次重逢的伏笔。文明永不谢幕，期待再次探险。<br>
-            <small>There are still locked chambers; a prelude to our next reunion. Civilization never ends; we look forward to exploring with you again.</small>
+            馆内未开启的“密室”是留给下次重逢的伏笔。期待与您一起，再次探险！<br>
+            <small>There are still locked “chambers” in the museum. Looking forward to exploring those with you again!</small>
         </div>
-        <button class="btn-gold" onclick="location.reload()">重新开始<br><small>RESTART</small></button>
-        <button id="deepBtn" class="btn-outline" onclick="startDeep()">开启深境挑战<br><small>DEEP CHALLENGE</small></button>
+        <button class="btn-gold" onclick="showClosing()">结语·讲解员说<br><small>THE DOCENT'S CLOSING</small></button>
+        <button id="deepBtn" class="btn-outline" onclick="startDeep()">开启深境挑战<br><small>UNLOCK DEEP INSIGHTS</small></button>
     </div>
 
+   <!-- 尝试恢复深境结算界面 -->
     <div id="deepEndPage" class="card hidden">
-        <div id="star-field" style="position:absolute; inset:0; pointer-events:none; z-index:0; background: rgba(26, 42, 108, 0.05);"></div>
         
-        <div style="position:relative; z-index:1;">
-            <h2 id="deepEndName" class="rainbow-text"></h2>
-            <p id="deepEndingText" style="padding:0 15px; line-height:1.6; text-align: left; font-size: 14px;"></p>
-            <button class="btn-blue" onclick="location.reload()">向所有人类文明致敬<br><small>SALUTE TO All HUMAN CIVILIZATION</small></button>
-            <button class="btn-outline" onclick="goToSettlement()">返回结算页面<br><small>BACK TO SETTLEMENT</small></button>
-        </div>
     </div>
+
+<div id="closingPage" class="card closing-card hidden" style="padding: 15px 25px; max-width: 420px; margin: 20px auto; border-radius: 20px;">
+
+    <h3 style="text-align: center; margin-bottom: 10px; font-family: 'STKaiti', '楷体'; " font-size: 15px;>
+        结语·讲解员说<br>
+        <small style="font-size: 12px; opacity: 0.7; font-weight: normal;">
+            THE DOCENT'S CLOSING
+        </small>
+    </h3>
+    <div style="border-top: 1px dashed rgba(62, 39, 35, 0.3); margin-bottom: 8px;"></div>
+    
+    <div style="text-align: left; line-height: 1.5; font-size: 12px;
+    "><p style="margin-bottom: 0px! important;">
+          在大英讲解的这段时间里，我和客人们一起不断学习和成长。百余场讲解下来，我发现最重要的工作并不是罗列数据，而是通过这些真实的物件，带大家去寻找那些曾经鲜活存在过的、创造了这些文明的人。</p>        
+        <p style="font-size: 10px; font-style: italic; margin-top: 2px; margin-bottom: 12px; line-height: 1.2; opacity: 0.8;">
+            During my time as a docent at the British Museum, I’ve found that the essence of my work is not listing figures, but using real objects to reconnect 
+            us with the vibrant individuals who built these civilizations.</p>
+            
+       <p style="margin-bottom: 0px !important;">  
+            这份工作让我有幸见证了许多次跨越时空的共鸣。当展柜后的历史与观众的当下产生联系，那些遥远的记忆便不再只是教科书上的名词，而是变得具体且真实。这让我意识到，我的工作不仅是严谨的研究与转述，
+            更是连接过去与当下——文物是连接过去、现在与未来的文化符号，更是承载集体记忆的实物载体。当我带你读懂一件文物，原本冰冷的陈列品就有了温度。通过这些转译，能让我们在漫长的文明长河中，看到那
+            些从未熄灭的智慧光芒——它们依然在照亮我们今天的路。</p>
+       <p style="font-size: 10px; font-style: italic; margin-top: 2px; margin-bottom: 12px; line-height: 1.2; opacity: 0.8;">
+            My work has allowed me to witness many moments of cross-temporal resonance. I realised that my role is not just about academic research and relay, 
+            but about creating connections. Artifacts are symbols connecting our timeline and vessels of collective memory. In the vast flow of history, 
+            these sparks of wisdom remain unquenched, still lighting our way today. </p>
+
+        <p style="margin-bottom: 0px !important;">
+           很荣幸能成为你今天的向导，愿你在这些与历史脉搏同频的呼吸中，领略文明交织的璀璨魅力，探索属于人类文明的共同记忆。更愿这次旅程能化作你心中的一颗火种，在未来的某个时刻，照亮你望向世界与自我的目光。</p>
+         <p style="font-size: 10px; font-style: italic; margin-top: 2px; margin-bottom: 12px; line-height: 1.2; opacity: 0.8;">
+            I am delighted to be your docent today. I hope you enjoy this exploration of our shared heritage through the pulse of history. May this journey become a spark 
+            within you, illuminating your gaze toward the world and yourself in the moments to come. </p>
+    </div>
+
+    <div style="text-align: center; border-top: 1px dashed rgba(62, 39, 35, 0.3); padding-top: 20px;
+    ">
+        <img src="qr-code.png" style="width: 350px; height: auto; opacity: 0.9; margin-top: 5px; border-radius: 20%;
+        " alt="Signature">
+    </div>
+
+    <button class="btn-gold" onclick="location.reload()" style="
+        margin-top: 30px; 
+        width: 100%;
+    ">
+        重启·向人类文明致敬<br><small>RESTART-SALUTE TO ALL HUMAN CIVILIZATIONS</small>
+    </button>
+
 </div>
 
+<div style="text-align: center; margin: 40px 0 30px; padding: 20px; z-index: 10; position: relative;">
+    <div style="display: inline-block; border-top: 1px solid var(--gold); border-bottom: 1px solid var(--gold); padding: 15px 40px; background: rgba(255,255,255,0.05); backdrop-filter: blur(5px); border-radius: 4px;">
+        <div style="font-size: 11px; letter-spacing: 2px; color: var(--gold); margin-bottom: 5px; font-family: Georgia;">PRESENTED BY</div>
+<div onclick="openProfile()" style="font-size: 22px; font-weight: bold; color: white; letter-spacing: 5px; cursor: pointer; text-decoration: underline; text-underline-offset: 8px;">【心越】</div>
+        <div style="font-size: 11px; margin-top: 5px; color: rgba(255,255,255,0.6); letter-spacing: 1px;">艺予·大英博物馆深度讲解员<br>Yiyu · Senior Docent of the British Museum</div>
+        <div style="font-size: 15px; margin-top: 8px; color: var(--gold); opacity: 0.8;">小红书号: [11563327483]</div>
+    </div>
+</div>
 <script>
     let playerName = "";
     let score = 0, completed = 0, currentIdx = -1, isDeepMode = false;
     let draggedIdx = null;
     let rawTitle = ""; 
     let puzzleHasShuffled = false;
+    
 
     const questions = [
-        { lab:"概述", en:"OVERVIEW", img:"overview.png", q_zh:"大中庭3312块玻璃象征着什么？", q_en:"What does the Great Court roof symbolize?", a:"象征知识的透明与共享。", done:false },
-        { lab:"古埃及", en:"Ancient Egypt", img:"ancientegypt.png", q_zh:"拉美西斯二世像右胸的圆孔是？", q_en:"What is the hole in the statue?", a:"19世纪搬运起吊的遗迹。", done:false },
-        { lab:"亚述", en:"Assyria", img:"assyria.png", q_zh:"守护王宫的神兽叫什么？", q_en:"What is the protective deity called?", a:"拉玛苏 (Lamassu)。", done:false },
-        { lab:"古罗马", en:"Ancient Rome", img:"ancientrome.png", q_zh:"罗马肖像的真实感传达了？", q_en:"What did Roman realism convey?", a:"统治者的责任感与威严。", done:false },
-        { lab:"古希腊", en:"Ancient Greece", img:"ancientgreece.png", q_zh:"《命运三女神》展示了？", q_en:"What does 'Three Fates' show?", a:"解剖学与湿衣褶的高峰。", done:false },
-        { lab:"生与死", en:"Living & Dying", img:"livingdying.png", q_zh:"复活节岛石像材质是？", q_en:"What are Moai made of?", a:"火山凝灰岩。", done:false },
-        { lab:"中国", en:"China", img:"china.png", q_zh:"唐三彩马通常有哪三色？", q_en:"Three colors of Tang Sancai?", a:"黄、绿、白。", done:false },
-        { lab:"隐藏任务", en:"Hidden Mission", img:"hiddenmission.png", q_zh:"寻找玉玺并拼图复原身份验证。", q_en:"Find the seal and restore it for verification.", a:"验证成功！您已获得特邀研究员勋章。", done:false, isPuzzle:true }
+        { lab:"概述", en:"OVERVIEW", img:"overview.png", q_zh:"大英博物馆建成于1759年，是人类历史上第一座国立博物馆。博物馆最初的藏品源于谁的收藏？", q_en:"The British Museum, established in 1759, is the first national museum in human history. From whose collection did the museum's initial holdings originate?", a_zh:"汉斯·斯隆爵士，1753年去世，去世时已收藏了超过71000件藏品。他在遗嘱中将藏品遗赠给了国家，这些藏品成为了大英博物馆的创始藏品。", a_en:"Sir Hans Sloane. By his death in 1753 he had collected more than 71,000 items. Sloane bequeathed his collection to the nation in his will and it became the founding collection of the British Museum.", done:false },
+        { lab:"古埃及", en:"Ancient Egypt", img:"ancientegypt.png", q_zh:"古埃及雕塑厅中的雕像并非只为当世而作，而是为让形象长存、使灵魂得以延续于永恒之中，多以神祇、法老和特权官员的形象，被视为是他们灵魂的载体。这其中最大的是哪一尊？", q_en:"The monuments in the Egyptian sculpture gallery were created for eternity. They were primarily depicted as gods, pharaohs, and privileged officials, seen as vessels for their souls. Which of these is the largest?", a_zh:"拉美西斯二世的胸像，高约2.67米，重超过7吨。拉美西斯二世是古埃及最伟大的法老之一。", a_en:"The bust of Ramses II is approximately 2.67 meters tall and weighs over 7 tons. Ramses II was one of the greatest pharaohs of ancient Egypt.", done:false },
+        { lab:"亚述", en:"Assyria", img:"assyria.png", q_zh:"在亚述文明的浮雕中，“猎狮”是国王向神明祈福的仪式，它主要用来彰显国王的军事能力与绝对的统治权。这些浮雕上的国王是谁？", q_en:"In Assyrian reliefs, the ‘Lion Hunt’ was a ritual in which the king prayed to the gods for blessings, primarily used to demonstrate the king's military prowess and absolute rule. Who were the kings depicted in these reliefs?", a_zh:"亚述巴尼拔，他是亚述帝国最后一位伟大的国王。这些浮雕是为他在尼尼微（今伊拉克北部）的宫殿而创作的。", a_en:"Ashurbanipal, the last great king of the Assyrian Empire. These reliefs were created for his palace in Nineveh (present-day northern Iraq).", done:false },
+        { lab:"古罗马", en:"Ancient Rome", img:"ancientrome.png", q_zh:"罗马帝国继承了古希腊的艺术文化并发展出了他们的独特风格。沐浴中的维纳斯正处于一个非常私密的场景中，这反映了古罗马艺术中神灵形象的什么变化？", q_en:"The Roman Empire inherited the art and culture of ancient Greece and developed its own style. The bathing Venus is in a very private setting, what changes in the depiction of deities in ancient Roman art does this reflect?", a_zh:"神灵不再是高高在上、不可直视的，而是被赋予了人类的羞涩感和生活化场景（沐浴），体现了罗马帝国时期对“人”的体态之美的世俗化欣赏。", a_en:"The gods were no longer aloof and unapproachable, but were endowed with human shyness and everyday scenes (bathing), reflecting the secular appreciation of the physical beauty of 'humans' during the Roman Empire.", done:false },
+        { lab:"古希腊", en:"Ancient Greece", img:"ancientgreece.png", q_zh:"帕特农神庙是献给雅典守护神雅典娜的神庙，充满了密集的希腊神话雕刻，是一部“用大理石书写的国家史诗”。神庙外墙的东三角楣描绘的是古希腊神话中的哪一幕？", q_en:"The Parthenon, dedicated to Athena, the patron goddess of Athens, is filled with dense sculptures of Greek mythology, seen as 'national epic written in marble'. What scene from ancient Greek mythology is depicted on the East Pediment of the temple's exterior?", a_zh:"女神雅典娜从宙斯头部中诞生的神圣时刻，众神在两侧见证。群像以太阳神驾车升起、月亮女神驾车落下为界，象征这一伟大事迹横跨昼夜、震撼宇宙。", a_en:"It depicts **Athena’s birth** from Zeus's head, witnessed by the gods. Framed by Helios's rising sun and Selene's setting moon, the scene marks a cosmic event spanning day and night.", done:false },
+        { lab:"生与死", en:"Living & Dying", img:"livingdying.png", q_zh:"无论是古代文明的宏大叙事，还是现代个体的日常生活，都在告诉我们生存和消亡是所有事物必经之路，那么既然“固有一死”，我们该如何度过这仅有一次的“生”？", q_en:"Whether it's the grand narratives of ancient civilizations or the daily lives of modern individuals, they all tell us that survival and extinction are inevitable paths for all things. So, since death is inevitable, how should we spend this one and only life?", a_zh:"毛主席在《为人民服务》中和我们探讨了革命年代的生死意义：“为人民利益而死，就比泰山还重；替法西斯卖力，替剥削人民和压迫人民的人去死，就比鸿毛还轻。”“重于泰山”在革命年代是英雄的壮举，也可以是和平年代我们每个人对自己生命的思考与责任。祝愿大家都能够找到自己的“重于泰山”并有所收获。", a_en:"'To die for the people's benefits is heavier than Mount Tai; to die for the fascists, for those who exploit and oppress the people, is lighter than a feather.' ——Chairman Mao. ‘Heavier than Mount Tai’ was a heroic feat in the revolutionary era, and it can also be a reflection on our own lives and responsibilities in peacetime. May you all find your own 'heavier than Mount Tai' and gain from it.", done:false },
+        { lab:"中国", en:"China", img:"china.png", q_zh:"华夏礼脉，薪传千年，找一件你心中最能代表中国的“礼”的文物并说说你的理由。", q_en:"The tradition of Chinese rituals has been passed down for thousands of years. Find a collection that represents the Chinese concept of ‘Li’ and show your perspctive.", a_zh:"欢迎大家在参观过程中互相交流，言之有理即可。", a_en:"Please share your ideas during the visit.", done:false },
+        { lab:"隐藏任务", en:"Hidden Mission", img:"hiddenmission.png", q_zh:"寻找展厅中乾隆皇帝的玉玺，请将拼图复原并验证。", q_en:"Find Emperor Qianlong's jade seal in the exhibition hall, please restore the puzzle and verify it.", a_zh: `玉玺成功复原!, a_en:"Verified!" <br><div style="text-align:center;margin-top:10px;"><img src="yuxi.jpg" style="width:250px;height:auto;border-radius:10px;border:2px solid #b89047;"></div>`, 
+    a_en: "Jade Seal Verified!", 
+    done:false, 
+    isPuzzle:true 
+}
     ];
 
     const deepMissions = [
-        { t:"中国瓷器", en:"Chinese Ceramics", img:"chineseceramics.png", q_zh:"如果没有丝绸之路的矿料，青花瓷还会诞生吗？", q_en:"Would Blue-and-White exist without Silk Road?", done:false },
-        { t:"木乃伊", en:"Mummies", img:"mummies.png", q_zh:"古埃及人保存肉体是畏惧死亡，还是热爱生活？", q_en:"Fear of death or love for life?", done:false },
-        { t:"罗马及爱琴海", en:"Roman & Aegean", img:"romanempire.png", q_zh:"支撑文明长久存在的动力是武力还是文化？", q_en:"What sustains civilization: Force or Culture?", done:false },
-        { t:"欧洲展厅", en:"Europe", img:"europe.png", q_zh:"在动荡的中世纪，人们为何花几十年雕刻一颗棋子？", q_en:"Why spend decades carving a single piece?", done:false },
-        { t:"中东文明", en:"Middle East", img:"middleeast.png", q_zh:"如果没有文字记录，我们的记忆将如何延续？", q_en:"Without records, how would memory endure?", done:false },
-        { t:"非洲艺术", en:"Africa", img:"africa.png", q_zh:"你能感受到那种‘在苦难中绽放生命力’的力量吗？", q_en:"Can you feel the power blooming from hardship?", done:false }
+        { t:"中国瓷器", en:"Chinese Ceramics", img:"chineseceramics.png", q_zh:"我们今天为什么还在看这些瓷器？从这些宫廷瓷器的风格演变中，我们看到了王朝更替中的什么文化选择？", q_en:"Why do we still look at these ceremics today? What cultural choices during dynastic changes do we see in the stylistic evolution of these imperial porcelains?", done:false },
+        { t:"木乃伊", en:"Mummies", img:"Mummies.png", q_zh:"当一个文明如此精心地准备死亡，它真正在守护的，是死亡，还是生命？", q_en:"When a civilization so meticulously prepares for death, is it truly protecting death or life?", done:false },
+        { t:"罗马及爱琴海", en:"Roman & Aegean Sea", img:"romanempire.png", q_zh:"这里的文明似乎总是与‘流动’和‘融合’有关——当文明不再受限于土地，而是建立在‘连接’之上时，它会变得更坚韧，还是更脆弱？你认为开放的代价是什么？", q_en:"The civilizations here seem to always be associated with 'flow' and 'integration'—when civilizations are no longer confined to the land but built on 'connection', do they become more resilient or more fragile? What do you think is the cost of openness?", done:false },
+        { t:"欧洲展厅", en:"Europe", img:"europe.png", q_zh:"在被信仰统治的时代，精美的艺术品是为了讨好神，还是为了彰显人的技艺？当科学的钟表开始与教堂的钟声竞争，人类对‘时间’的理解发生了怎样的质变？", q_en:"In an era dominated by faith, were exquisite works of art meant to please God or to showcase human skill? When scientific clocks began to compete with church bells, what qualitative changes occurred in humanity's understanding of 'time'?", done:false },
+        { t:"中东文明", en:"Middle East", img:"middleeast.png", q_zh:"美索不达米亚的泥板上记录着人类最早的史诗和末日预言。在一个资源丰富、冲突不断的平原上，是什么支撑着人们不断建立又重建城市？如果文明的宿命就是不断地‘推倒重来’，那么‘积累’的意义究竟在哪里？", q_en:"Mesopotamian clay tablets record humanity's earliest epics and doomsday prophecies. On a resource-rich, conflict-ridden plain, what sustained people in continuously building and rebuilding cities? If the destiny of civilization is to constantly 'tear down and start over,' then what is the meaning of 'accumulation'?", done:false },
+        { t:"非洲", en:"Africa", img:"africa.png", q_zh:"“如果一段历史没有被写成书，它是否就‘不存在’？我们该如何学会用眼睛以外的器官——比如耳朵和皮肤，去感知另一种文明的脉搏？”", q_en:"If a piece of history is not written down, does it 'not exist'? How can we learn to use other than our eyes—such as our ears and skin—to perceive the pulse of another civilization?", done:false }
     ];
 
     function startGame() {
@@ -245,22 +585,51 @@
             const div = document.createElement("div");
             div.className = `node ${q.done ? 'completed' : ''}`;
             div.onclick = () => isDeepMode ? openDeep(idx) : openQuestion(idx);
-            let iconHtml = (q.done && isDeepMode) ? `<div class="icon-circle"><div class="star-node">⭐</div></div>` : `<div class="icon-circle"><img src="${q.img}"></div>`;
-            div.innerHTML = `${iconHtml}<div class="node-label">${isDeepMode ? '' : q.lab + '<br>'}<small>${isDeepMode ? q.t : q.en}</small></div>`;
+            let iconHtml = `<div class="icon-circle"><img src="${q.img}"></div>`;
+            
+            // 深境模式下也显示中英双语 (q.t 是中文标题, q.en 是英文名)
+            const labelText = isDeepMode ? q.t : q.lab;
+            const enTitle = q.en;
+            div.innerHTML = `${iconHtml}<div class="node-label">${labelText}<br><small>${isDeepMode ? q.en : q.en}</small></div>`;
             grid.appendChild(div);
         });
         const total = isDeepMode ? 6 : 8;
-        document.getElementById("progressBar").style.width = (completed / total * 100) + "%";
+        const progressPercent = (completed / total * 100) + "%";
+        document.getElementById("progressBar").style.width = progressPercent;
         document.getElementById("progText").innerText = `${completed}/${total}`;
-        if(completed >= (isDeepMode ? 1 : 6)) {
-            document.getElementById("finalBtn").classList.remove("hidden");
-            if(isDeepMode) {
-                document.getElementById("finalBtn").innerHTML = "结束深境探索<br><small>END DEEP ODYSSEY</small>";
-                document.getElementById("finalBtn").style.background = "#1a2a6c";
-                document.getElementById("finalBtn").onclick = finishDeep;
-            }
+
+        updateMap();
+         }
+        // 核心修正逻辑
+    function updateMap() {
+    const finalBtn = document.getElementById("finalBtn");
+    
+    // 如果没有 finalBtn，直接跳过
+    if (!finalBtn) return;
+
+    // B. 进入地图后的逻辑
+    if (isDeepMode) {
+        // 深境模式：只要完成 1 个就能结算（或者根据你需求调整）
+        if (completed >= 1) {
+            finalBtn.classList.remove("hidden");
+            finalBtn.innerHTML = "结束深境挑战<br><small>END DEEP INSIGHTS</small>";
+            finalBtn.onclick = finishDeep;
+        } else {
+            finalBtn.classList.add("hidden");
+        }
+    } else {
+        // 探索模式：只要 completed 大于等于 6 就会出现结算键
+        if (completed >= 6) {
+            finalBtn.classList.remove("hidden");
+            finalBtn.innerHTML = "结算<br><small>SETTLEMENT</small>";
+            finalBtn.onclick = showResult;
+        } else {
+            finalBtn.classList.add("hidden");
         }
     }
+}
+        
+    
 
     function openQuestion(idx) {
         if(questions[idx].done) return;
@@ -284,14 +653,82 @@
             document.getElementById("qActions").classList.remove("hidden");
         }
     }
+// 修改 startDeep，同步启动背景星和 Card 星
+function startDeep() {
+    isDeepMode = true; 
+    completed = 0;
+    document.body.classList.add("is-deep-theme");
+    
+    // 1. 生成背景星（纯白点点）
+    createBackgroundStars();
+    
+    document.getElementById("resultPage").classList.add("hidden");
+    document.getElementById("mapPage").classList.remove("hidden");
+    
+    // 2. 为当前显示的 mapPage Card 生成内部亮星
+    createCardStars("mapPage", false); 
+    
+    renderMap();
+}
 
-    function startDeep() {
-        isDeepMode = true; completed = 0;
-        document.getElementById("resultPage").classList.add("hidden");
-        document.getElementById("mapPage").classList.remove("hidden");
-        document.getElementById("mapPage").classList.add("deep-mode-active");
-        renderMap();
+// 专门生成背景星（纯白，有远近感）
+function createBackgroundStars() {
+    document.querySelectorAll('.sky-star').forEach(s => s.remove());
+    for(let i=0; i<100; i++) {
+        const s = document.createElement('div');
+        s.className = 'sky-star';
+        const size = Math.random() * 2 + 1;
+        s.style.width = s.style.height = size + 'px';
+        s.style.backgroundColor = '#fff';
+        s.style.opacity = Math.random() * 0.5 + 0.3; // 远近感
+        s.style.left = Math.random() * 100 + 'vw';
+        s.style.top = Math.random() * 100 + 'vh';
+        s.style.animation = `twinkle ${Math.random()*3+2}s infinite`;
+        document.body.appendChild(s);
     }
+}
+
+// 专门在 Card 内部生成星星
+function createCardStars(containerId, isFinal) {
+    const card = document.getElementById(containerId);
+    // 清理旧星星
+    card.querySelectorAll('.card-star, .diamond-star, .meteor-card').forEach(s => s.remove());
+    
+    const count = isFinal ? 40 : 15; // 结算页星辰增多
+    
+    for(let i=0; i<count; i++) {
+        const s = document.createElement('div');
+        s.className = 'card-star';
+        const size = Math.random() * 4 + 2; // 比背景星大
+        s.style.width = s.style.height = size + 'px';
+        
+        // 结算页才是有黄有白，普通深境只有白
+        const isYellow = isFinal && Math.random() > 0.7;
+        s.style.backgroundColor = isYellow ? '#ffeb3b' : '#fff';
+        if(isFinal) s.style.boxShadow = `0 0 10px ${isYellow ? '#ffeb3b' : '#fff'}`;
+        
+        s.style.left = Math.random() * 100 + '%';
+        s.style.top = Math.random() * 100 + '%';
+        s.style.animation = `twinkle ${Math.random()*2+1}s infinite alternate`;
+        card.appendChild(s);
+    }
+    
+    // 结算页专属：棱形星和流星
+    if(isFinal) {
+        // 加入 4-5 个棱形大星 ✨
+        for(let j=0; j<5; j++) {
+            const ds = document.createElement('div');
+            ds.className = 'diamond-star';
+            ds.style.left = Math.random() * 80 + 10 + '%';
+            ds.style.top = Math.random() * 80 + 10 + '%';
+            card.appendChild(ds);
+        }
+        // 加入流星
+        const m = document.createElement('div');
+        m.className = 'meteor-card';
+        card.appendChild(m);
+    }
+}
 
     function openDeep(idx) {
         if(deepMissions[idx].done) return;
@@ -304,15 +741,31 @@
         document.getElementById("puzzleArea").classList.add("hidden");
         document.getElementById("qHeader").innerHTML = `<div class="icon-circle"><img src="${q.img}"></div>`;
         document.getElementById("qContent").innerHTML = `<b>${q.q_zh}</b><br><small>${q.q_en}</small>`;
-        document.getElementById("qActions").innerHTML = `<button class="btn-blue" onclick="completeDeep()">深入思考 完成<br><small>Critical Thinking Contemplate</small></button>`;
+        document.getElementById("qActions").innerHTML = `<button class="btn-blue" onclick="completeDeep()">完成思辩<br><small>Insight Unlocked</small></button>`;
         document.getElementById("qActions").classList.remove("hidden");
     }
 
-    function completeDeep() {
-        deepMissions[currentIdx].done = true;
-        completed++;
-        backToMap();
-    }
+ function completeDeep() {
+    // 1. 直接调用探索模式的弹窗逻辑
+    handleAnswer(true);
+    
+    // 2. 数据处理
+    deepMissions[currentIdx].done = true;
+    completed++;
+
+    // 3. 特殊处理：深境模式点击弹窗后直接回地图，不看答案页
+    // 我们修改下一次点击弹窗时的行为
+    const originalClose = closeFeedback;
+    window.closeFeedback = function() {
+        if(isDeepMode) {
+            document.getElementById("feedback-overlay").style.display = "none";
+            backToMap(); // 直接回地图
+            window.closeFeedback = originalClose; // 还原逻辑供探索模式使用
+        } else {
+            originalClose();
+        }
+    };
+}
 
     let puzzleOrder = [0,1,2,3,4,5,6,7,8]; 
     function shuffle(array) {
@@ -356,24 +809,61 @@
         puzzleOrder[src] = puzzleOrder[dst];
         puzzleOrder[dst] = temp;
         initPuzzle();
-        if(puzzleOrder.every((v, i) => v === i)) handleAnswer(true);
+        // 当拼图顺序完全正确时
+    if(puzzleOrder.every((v, i) => v === i)) {
+        // 1. 调用 handleAnswer 显示“你太棒了”弹窗
+        handleAnswer(true); 
+        
+        // 2. 覆盖写入答案区内容，加入玉玺图片
+        // 注意：请确保您有 yuxi.jpg 这张图，或者换成您实际的图片路径
+        document.getElementById("ansText").innerHTML = `
+            <div style="font-weight: bold; margin-bottom: 8px; color: #b89047; text-align:center;">玉玺完成复原！ / Verified!</div>
+            <div style="text-align:center; margin-bottom:10px;">
+                <img src="yuxi.jpg" style="width:120px; height:120px; border-radius:10px; border:2px solid #b89047; box-shadow:0 4px 10px rgba(0,0,0,0.2);">
+            </div>
+            玉交龙纽珍贵玉玺已完成复原。</div>
+        `;
     }
+}
 
     function handleAnswer(isCorrect) {
-        if(isCorrect) score++;
-        document.getElementById("fb-zh").innerText = isCorrect ? "你太棒了！" : "没关系";
-        document.getElementById("fb-en").innerText = isCorrect ? "AWESOME!" : "KEEP EXPLORING";
-        document.getElementById("feedback-overlay").style.display = "flex";
-        if(!isDeepMode) { questions[currentIdx].done = true; completed++; }
+    if(isCorrect) {
+        score++;
+        window.correctCount = score; // 记录分数供结算页使用
     }
+    
+    // 弹窗提示
+    document.getElementById("fb-zh").innerText = isCorrect ? "你太棒了！" : "没关系";
+    document.getElementById("fb-en").innerText = isCorrect ? "AWESOME!" : "KEEP EXPLORING";
+    document.getElementById("feedback-overlay").style.display = "flex";
+
+    // 只有在非深境模式下，才增加探索进度
+    if(!isDeepMode) {
+        if(!questions[currentIdx].done) {
+            questions[currentIdx].done = true;
+            completed++; // 增加已完成数量
+        }
+    }
+    
+    // 关键：答题后立即刷新地图按钮状态
+    updateMap();
+}
 
     function closeFeedback() {
         document.getElementById("feedback-overlay").style.display = "none";
         document.getElementById("qActions").classList.add("hidden");
         document.getElementById("puzzleArea").classList.add("hidden");
         document.getElementById("ansArea").classList.remove("hidden");
-        document.getElementById("ansText").innerHTML = `<b>答案 / Answer:</b><br>${questions[currentIdx].a}`;
-    }
+        // 构造双语 HTML 结构
+        const q = questions[currentIdx];
+        document.getElementById("ansText").innerHTML = `
+        <div style="font-weight: bold; margin-bottom: 5px; color: #b89047;">答案 / Answer:</div>
+        <div style="line-height: 1.5; font-size: 14px; margin-bottom: 4px;">${q.a_zh}</div>
+        <div style="line-height: 1.3; font-size: 13px; font-style: italic; opacity: 0.8;">
+            ${q.a_en}
+    </div>
+`;
+}
 
     function backToMap() {
         document.getElementById("questionPage").classList.add("hidden");
@@ -386,13 +876,13 @@
         document.getElementById("resultPage").classList.remove("hidden");
         document.getElementById("resName").innerText = playerName;
         let tZh = "", tEn = "", comment = "";
-        if(score === 8) { tZh = "“大满贯”——文明守望者"; tEn = "Civilization Guardian"; comment = "万物皆有回响，你听到了文明的心跳。<br><small>Everything has an echo; you have heard the very heartbeat of civilizations.</small>"; }
-        else if(score === 7) { tZh = "时空巡礼官"; tEn = "Chronos Voyager"; comment = "历史是凝固的时间，而你拥有拨动指针的灵感。<br><small>History is frozen time; you possess the inspiration to turn its hands.</small>"; }
-        else if(score === 6) { tZh = "传奇考古大师"; tEn = "Legendary Master"; comment = "破译碎片的秘密，是属于你与古人之间的默契。<br><small>Deciphering the secrets of fragments is a silent understanding between you and the ancients.</small>"; }
-        else if(score === 5) { tZh = "见习史学家"; tEn = "Junior Historian"; comment = "在庞大的史料中，你已经寻得那条通往真相的小径。<br><small>Amidst vast historical records, you have found the narrow path leading to the truth.</small>"; }
-        else if(score >= 3) { tZh = "博物馆领航员"; tEn = "Museum Navigator"; comment = "即使在迷雾般的往事里，你依然能辨认出文明的灯塔。<br><small>Even in the mists of the past, you can still recognize the lighthouse of civilization.</small>"; }
-        else if(score >= 1) { tZh = "历史探索者"; tEn = "History Explorer"; comment = "每一次好奇的注视，都是对人类记忆的一份敬意。<br><small>Every curious gaze is an act of homage to human memory.</small>"; }
-        else { tZh = "迷失的时空旅行者"; tEn = "Lost Time Traveler"; comment = "沉醉于美而忘记了归期，这本身就是一场浪漫的漫游。<br><small>To be so intoxicated by beauty that one forgets to return—that is a romantic odyssey in itself.</small>"; }
+        if(score === 8) { tZh = "“大满贯”——文明守望者"; tEn = "GOAT——Civilization Guardian"; comment = "万物皆有回响，你听到了人类文明的心跳。<br><small>All things echo; you have heard the very heartbeat of human civilizations.</small>"; }
+        else if(score === 7) { tZh = "时空巡礼官"; tEn = "Chronos Voyager"; comment = "历史是凝固的时间，而你拥有拨动指针的灵感。<br><small>History is a frozen clock; you have the inspiration set its hands in motion.</small>"; }
+        else if(score === 6) { tZh = "考古专家"; tEn = "Archaeological Specialist"; comment = "破译碎片的秘密，是属于你与古人之间的默契。<br><small>Unraveling the secrets within fragments is a quiet bond between you and the ancients.</small>"; }
+        else if(score === 5) { tZh = "见习史学家"; tEn = "Junior Historian"; comment = "在庞大的史料中，你已经寻得那条通往真相的小径。<br><small>Amidst vast historical records, you have found the small path leading to the truth.</small>"; }
+        else if(score >= 3) { tZh = "博物馆领航员"; tEn = "Museum Navigator"; comment = "你用智慧穿透了岁月的尘埃，让那些沉寂的往事重新拥有了温度。<br><small>Through your insight, you have looked beyond the traces of time and restored warmth to stories long at rest.</small>"; }
+        else if(score >= 1) { tZh = "历史探索者"; tEn = "History Explorer"; comment = "每一次好奇的注视，都是对人类记忆的一份敬意。<br><small>Each moment of curiosity is a gesture of respect toward human memory.</small>"; }
+        else { tZh = "迷失的旅行者"; tEn = "Lost Traveler"; comment = "伟大的探索往往始于迷途，而你每一次的驻足思考，都在加深文明与现实的联结。<br><small>Great discoveries often start from uncertainty, and every time you pause to reflect, you deepen the link between civilization and the present world.</small>"; }
         rawTitle = tZh; 
         document.getElementById("resTitle").innerHTML = `🏆 ${tZh} 🏆<br><small>${tEn}</small>`;
         document.getElementById("resComment").innerHTML = comment;
@@ -427,40 +917,221 @@
         animate();
     }
 
-    function finishDeep() {
-        document.getElementById("mapPage").classList.add("hidden");
-        document.getElementById("deepEndPage").classList.remove("hidden");
-        document.getElementById("deepEndName").innerText = `谢谢你，${rawTitle} ${playerName}`;
-        document.getElementById("deepEndingText").innerHTML = `
-            在这段跨越时空的旅程中，你不仅用双眼见证了历史，更用思考赋予了文物新的生命。文明从未在废墟中消亡，它在每一个如你般专注的灵魂中接力。愿这颗点亮的星辰，伴随你未来的每一次探索。<br><br>
-            <small>In this journey across time, you have not only witnessed history but breathed new life into artifacts through your reflections. Civilization never perished in the ruins; it continues in every soul as devoted as yours. May this lit star accompany you on every future exploration.</small>
-        `;
-        createStars();
+
+// 基础称号与前缀计算函数
+function getDeepPrefix(m) {
+    const prefixes = {
+        1: { zh: "【拾遗】", en: "[TRACES] " },
+        2: { zh: "【格物】", en: "[PROBE] " },
+        3: { zh: "【潜思】", en: "[MUSE] " },
+        4: { zh: "【洞见】", en: "[ILLUMILATION] " },
+        5: { zh: "【臻萃】", en: "[ESSENCE] " },
+        6: { zh: "【大成】", en: "[MASTERY] " }
+    };
+    return prefixes[m] || { zh: "", en: "" };
+}
+
+function getBaseTitle(n) {
+    if (n === 0) return "迷失的时空旅行者";
+    if (n <= 2) return "历史探索者";
+    if (n <= 4) return "博物馆领航员";
+    if (n === 5) return "见习史学家";
+    if (n === 6) return "传奇考古大师";
+    if (n === 7) return "时空巡礼官";
+    return "‘大满贯’——文明守望者";
+}
+// 结算页渲染逻辑
+function finishDeep() {
+    document.getElementById("mapPage").classList.add("hidden");
+    const container = document.getElementById("deepEndPage");
+    container.classList.remove("hidden");
+
+    // --- 核心修复：多重保险读取分数 ---
+    // 1. 优先读取我们刚才存的 window.correctCount
+    // 2. 如果没有，读取代码顶部的 score 变量
+    let nCount = window.correctCount || score || 0; 
+    
+    const mCount = typeof completed !== 'undefined' ? completed : 0;
+    
+    const finalPrefix = getDeepPrefix(mCount);
+    const baseTitle = getBaseTitle(nCount);
+
+    const pZh = typeof finalPrefix === 'object' ? finalPrefix.zh : finalPrefix;
+    const pEn = typeof finalPrefix === 'object' ? finalPrefix.en : "";
+
+    const baseTitleEn = {
+    "‘大满贯’——文明守望者": "GOAT——CIVILIZATION GUARDIAN",
+    "时空巡礼官": "CHRONOS VOYAGER",
+    "考古专家": "Archaeological Specialist",
+    "见习史学家": "JUNIOR HISTORIAN",
+    "博物馆领航员": "MUSEUM NAVIGATOR",
+    "历史探索者": "HISTORY EXPLORER",
+    "迷失的时空旅行者": "LOST TRAVELER"
+}[baseTitle] || "";
+
+    // 生成星辰勋章 HTML
+    let starsHtml = '<div style="margin: 20px 0; display: flex; justify-content: center; gap: 8px;">';
+    for(let i=1; i<=6; i++) {
+        const isLit = i <= mCount;
+        starsHtml += `<span style="color:${isLit?'#ffeb3b':'#fff'}; opacity:${isLit?1:0.2}; font-size: 20px; text-shadow: ${isLit?'0 0 10px #ffeb3b':'none'}">✨</span>`;
+    }
+    starsHtml += '</div>';
+
+    // 注入动态内容
+    const contentArea = document.getElementById("deepContent");
+    container.innerHTML = `
+        <div style="color: rgba(255,255,255,0.7); font-size: 0.85rem; line-height: 1.6; margin-bottom: 20px; font-style: italic;">
+            “静水流深，石破天惊。那些沉睡千年的灵魂，因你的注视而泛起微澜。此时此刻，你与历史，互为见证。”<br>
+            <small style="opacity: 0.8; font-size: 0.75rem; display: block; margin-top: 5px;">
+                "Still waters run deep, a thunder in the silence. Ancient souls ripple at your gaze. At this moment, you and history bear witness to each other."
+            </small>
+        </div>
+        
+        ${starsHtml}
+
+        <div style="margin-bottom: 20px; color: #fff; font-size: 0.95rem;">
+            在本次漫游中，你点亮了 <b style="color:#ffeb3b; font-size:1.1rem;">${nCount}</b> 处文明印记，<br>
+            并在 <b style="color:#ffeb3b; font-size:1.1rem;">${mCount}</b> 处文明深处留下了你的思想共鸣。<br>
+            <small style="color: rgba(255,255,255,0.6); font-size: 0.8rem; display: block; margin-top: 5px;">
+                In this journey, you lit up ${nCount} cultural marks and left thought echoes at ${mCount} civilizations.
+            </small>
+        </div>
+
+        <div style="margin: 25px 0;">
+            <div style="font-size: 1.5rem; color: #ffeb3b; font-weight: bold; text-shadow: 0 0 20px rgba(255,235,59,0.6); line-height: 1.2;">
+                ${pZh}${baseTitle}
+            </div>
+            <div style="font-size: 0.75rem; color: #ffeb3b; opacity: 0.8; letter-spacing: 1px; margin-top: 5px; font-family: Georgia;">
+                ${pEn}${baseTitleEn}
+            </div>
+        </div>
+
+        <button class="btn-gold" onclick="showClosing()" style="width: 100%;">
+            结语·讲解员说<br><small>THE DOCENT'S CLOSING</small>
+        </button>
+    `;
+
+    if(window.createCardStars) createCardStars("deepEndPage", true);
+    // 3. --- 核心修复：稳固的流星循环 ---
+    if(window.meteorInterval) clearInterval(window.meteorInterval);
+    
+    // 立即执行一次
+    createMeteor(); 
+    
+    // 每 2000 毫秒（2秒）执行一次
+    window.meteorInterval = setInterval(createMeteor, 3000);
+}
+
+function createMeteor() {
+    const container = document.getElementById("deepEndPage");
+    if (!container || container.classList.contains("hidden")) return;
+
+    const meteor = document.createElement("div");
+    meteor.className = "meteor-card";
+    
+    // 让流星每次出发的位置在右上角有小范围随机，更自然
+    meteor.style.top = (Math.random() * 15 - 5) + "%"; 
+    
+    container.appendChild(meteor);
+
+    // 动画时间是 2s，我们 2.1s 后移除节点
+    setTimeout(() => {
+        if(meteor.parentNode) meteor.remove();
+    }, 3100);
+}
+// 切换到感言页逻辑
+function showClosing() {
+    document.body.classList.remove("is-deep-theme");
+
+    // 停止流星
+    if(window.meteorInterval) clearInterval(window.meteorInterval);
+    
+    const resPage = document.getElementById("resultPage");
+    const deepPage = document.getElementById("deepEndPage");
+
+    if(resPage) resPage.classList.add("hidden");
+    if(deepPage) deepPage.classList.add("hidden");
+
+    const closingPage = document.getElementById("closingPage");
+    if(closingPage) {
+        closingPage.classList.remove("hidden");
+        closingPage.style.display = "block";
     }
 
-    // 星星创建逻辑修复
-    function createStars() {
-        const field = document.getElementById('star-field');
-        field.innerHTML = "";
-        const count = 60;
-        for(let i=0; i<count; i++) {
-            const s = document.createElement('div');
-            s.className = 'star';
-            const size = Math.random() * 3 + 1 + 'px';
-            s.style.width = size;
-            s.style.height = size;
-            s.style.left = Math.random() * 100 + '%';
-            s.style.top = Math.random() * 100 + '%';
-            s.style.setProperty('--duration', (Math.random() * 3 + 2) + 's');
-            s.style.animationDelay = Math.random() * 5 + 's';
-            field.appendChild(s);
-        }
+    window.scrollTo(0, 0);
+}
+    
+// 从总结页返回结算页
+    function backToSettlement() {
+        document.getElementById("closingPage").classList.add("hidden");
+        document.getElementById("resultPage").classList.remove("hidden");
     }
 
     function goToSettlement() {
+        document.body.classList.remove("is-deep-theme"); // 移除深境皮肤
         document.getElementById("deepEndPage").classList.add("hidden");
         document.getElementById("resultPage").classList.remove("hidden");
     }
+    function openProfile() {
+        document.getElementById("profileModal").classList.remove("hidden");
+    }
+    function closeProfile() {
+        document.getElementById("profileModal").classList.add("hidden");
+    }
 </script>
+<div id="profileModal" class="modal-overlay hidden" onclick="closeProfile()">
+   <div class="profile-card" onclick="event.stopPropagation()" 
+     style="max-height: 85vh; overflow-y: auto; padding-top: 0; border-radius: 28px !important; background-clip: padding-box; -webkit-overflow-scrolling: touch;">
+        <div style="text-align: center; padding-top: 30px; margin-bottom: 15px;">
+    <img src="zhaopian.JPG" style="width: 130px; height: 130px; border-radius: 50%; object-fit: cover; border: 4px solid #f5deb3; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+</div>
+        <div style="padding: 0 15px 8px;">
+            <h2 style="margin-bottom: 5px;">心越<small style="font-style: italic; font-size: 12px; color: #5d4037; font-weight: normal; font-family: Georgia;">    Xinyue</small>
+    </h2></h2>
+            <div style="color: #3e2723; font-size: 13px; margin-bottom: 15px; font-weight: bold;">艺予·大英博物馆深度讲解员<br>
+        <small style="font-size: 10px; color: #3e2723; opacity: 0.9; font-weight: normal; display: block; margin-top: 2px;">
+            Yiyu · Senior Docent of the British Museum
+        </small>
+    </div>
+            
+          <div class="content-box" style="text-align: justify; padding: 0;">
+    
+    <div style="margin-bottom: 8px;">
+        <div style="font-style: italic; font-size: 11px; color: #3e2723; line-height: 1.5;">
+            「累计完成百余场深度讲解。围绕核心馆藏持续研读并整理相关文献，形成约十万字学术梳理，致力于以更为严谨的方式进行知识转译，还原文物背后的历史语境与文化结构。」
+        </div>
+        <div style="font-style: italic; font-size: 9px; color: #5d4037; margin-top: 3px; line-height: 1.4;">
+            「With over 100 deep-dive sessions and 100,000 words of research, I am dedicated to rigorous knowledge translation, reconstructing the historical context and cultural structures.」
+        </div>
+    </div>
+
+    <div style="margin-bottom: 5px;">
+        <div style="font-size: 12px; color: #3e2723; font-weight: 500; line-height: 1.5;">
+            今天，我将带你穿梭于馆内最具代表性的文物之间，一同领略不同文明交织而成的璀璨魅力——在这里，历史中宏大的叙事将变得触手可及。
+        </div>
+        <div style="font-size: 10px; color: #5d4037; margin-top: 3px; line-height: 1.4;">
+            Today, I will lead you through the most iconic treasures to explore the profound beauty of diverse civilizations. Here, grand historical narratives become tangible.
+        </div>
+    </div>
+
+    <div style="margin-bottom: 5px; border-bottom: 1px solid rgba(62, 39, 35, 0.1); padding-bottom: 10px;">
+        <div style="font-size: 12px; color: #3e2723; font-weight: 500; line-height: 1.5;">
+            这是一场重构文明碎片的拼图之旅。很高兴能成为你的向导，希望你能够享受这段探索时光！
+        </div>
+        <div style="font-size: 10px; color: #5d4037; margin-top: 3px; line-height: 1.4;">
+            This is a journey of reassembling the puzzle of civilization. It is a privilege to be your guide; I hope you enjoy this exploration!
+        </div>
+    </div>
+
+</div>
+
+            <div style="display: flex; justify-content: flex-end; align-items: center; margin-top: 10px;">
+                <img src="yue.png" style="width: 90px; height: 90px; border-radius: 50%; opacity: 0.8;">
+            </div>
+
+            <button class="close-modal" onclick="closeProfile()" style="margin-top: 20px; border-radius: 30px; background: #f0f0f0; color: #666; font-size: 12px;">关闭 / CLOSE</button>
+        </div>
+    </div>
+</div>
 </body>
 </html>
